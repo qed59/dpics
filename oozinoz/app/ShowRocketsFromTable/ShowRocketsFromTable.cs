@@ -11,8 +11,8 @@ public class ShowRocketsFromTable : Form
     public ShowRocketsFromTable()
     {  
         DataGrid g = UI.NORMAL.CreateGrid();
-        g.DataSource = DataServices.CreateTable(
-            "SELECT Name, Apogee, Price, Thrust FROM Rocket");
+        g.DataSource = DataServices.CreateTableSqlConnection(
+            "SELECT Name, Apogee, Prices, Thrust FROM Rocket");
         Controls.Add(g);  
    
         Text = "Show Facade"; 

@@ -3,6 +3,8 @@ using System.Data;
 using System.Data.OleDb;
 using System.Collections;
 using System.Reflection;
+using Utilities;
+using System.Data.SqlClient;
 
 namespace DataLayer
 {
@@ -39,6 +41,17 @@ namespace DataLayer
             }     
         }
 
+        public static object LendReaderSQLConnection(string sql, BorrowReader borrower)
+        {
+            using (SqlConnection conn = CreateSqlConnection())
+            {
+                conn.Open();
+                SqlCommand c = new SqlCommand(sql, conn);
+                SqlDataReader r = c.ExecuteReader();
+                return borrower(r);
+            }
+        }
+
         /// <summary>
         /// Create and return a connection to the Oozinoz Access
         /// database.
@@ -47,14 +60,22 @@ namespace DataLayer
         public static OleDbConnection CreateConnection()
         {
             OleDbConnection c = new OleDbConnection();
-       
-            // String dbName = FileFinder.GetFileName("db", "oozinoz.mdb");
-            // c.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + dbName;
+
+            //String dbName = FileFinder.GetFileName("db", "oozinoz2.mdb");
+            //c.ConnectionString = "Provider=Microsoft.Jet.OLEDB.4.0;" + "Data Source=" + dbName;
             // Data Source=.\SQLEXPRESS;Initial Catalog=Customers;Integrated Security=True;
             const string provider = "SQLOLEDB";
             const string server = ".\\SQLExpress";
             const string dbName = "oozinoz";
             c.ConnectionString = string.Format("Provider={0};Server={1};Database={2};Trusted_Connection=Yes;", provider, server, dbName);
+            //c.ConnectionString = "Data Source=.;Initial Catalog=oozinoz;Integrated Security=True";
+            return c;
+        }
+
+        public static SqlConnection CreateSqlConnection()
+        {
+            SqlConnection c = new SqlConnection();
+            c.ConnectionString = "Data Source=.;Initial Catalog=oozinoz;Integrated Security=True";
             return c;
         }
 
@@ -78,7 +99,12 @@ namespace DataLayer
         public static DataTable CreateTable(string select) 
         {   
             return (DataTable) LendReader(select, new BorrowReader(CreateTable));
-        } 
+        }
+
+        public static DataTable CreateTableSqlConnection(string select)
+        {
+            return (DataTable)LendReaderSQLConnection(select, new BorrowReader(CreateTable));
+        }
 
         // Create a DataTable from the given reader
         internal static object CreateTable(IDataReader reader) 
